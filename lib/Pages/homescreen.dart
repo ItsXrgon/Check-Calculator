@@ -1,7 +1,8 @@
-import 'package:check_calculator/Pages/settings.dart';
+import 'package:check_calculator/Pages/settingspage.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-import '../Services/person.dart';
+import '/services/person.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -17,7 +18,8 @@ class HomeScreenState extends State<HomeScreen> {
   TextEditingController total = TextEditingController();
 
   int numberOfPeople = 0;
-  double vat = 0.0;
+  bool isDarkModeEnabled = false;
+  double vatTax = 0.0;
   double serviceTax = 0.0;
   double tip = 0.0;
 
@@ -25,6 +27,7 @@ class HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    _loadPreferences();
     allTotals = [];
     total.text = "0";
   }
@@ -36,6 +39,16 @@ class HomeScreenState extends State<HomeScreen> {
     }
     total.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      isDarkModeEnabled = prefs.getBool('isDarkModeEnabled') ?? false;
+      vatTax = prefs.getDouble('defaultVat') ?? 0.0;
+      serviceTax = prefs.getDouble('defaultService') ?? 0.0;
+      tip = prefs.getDouble('defaultTip') ?? 0.0;
+    });
   }
 
   void addPerson() {
@@ -85,36 +98,44 @@ class HomeScreenState extends State<HomeScreen> {
 
   void updateItem(int personIndex, int itemIndex, double item) {
     setState(() {
-      people[personIndex].items[itemIndex] = item;
-      updateTotals();
+      if(item >= 0) {
+        people[personIndex].items[itemIndex] = item;
+        updateTotals();
+      }
     });
   }
 
-  void updateVat(double vat) {
+  void updateVat(double vatTax) {
     setState(() {
-      this.vat = vat;
-      updateTotals();
+      if(vatTax >= 0) {
+        this.vatTax = vatTax;
+        updateTotals();
+      }
     });
   }
 
   void updateServiceTax(double serviceTax) {
     setState(() {
-      this.serviceTax = serviceTax;
-      updateTotals();
+      if(serviceTax >= 0) {
+        this.serviceTax = serviceTax;
+        updateTotals();
+      }
     });
   }
 
   void updateTip(double tip) {
     setState(() {
-      this.tip = tip;
-      updateTotals();
+      if(tip >= 0) {
+        this.tip = tip;
+        updateTotals();
+      }
     });
   }
 
   void updateTotals() {
     setState(() {
       for(int i=0; i<people.length; i++) {
-        people[i].calculateTotal(vat, serviceTax, tip/numberOfPeople);
+        people[i].calculateTotal(vatTax, serviceTax, tip/numberOfPeople);
         allTotals[i].text = people[i].total.toStringAsFixed(2);
       }
       getTotal();
@@ -126,19 +147,32 @@ class HomeScreenState extends State<HomeScreen> {
     for (Person person in people) {
       totalAll += person.total;
     }
-    totalAll = totalAll + (totalAll * vat/100) + (totalAll * serviceTax/100) + tip;
+    totalAll = totalAll + (totalAll * vatTax/100) + (totalAll * serviceTax/100) + tip;
     total.text = totalAll.toStringAsFixed(2);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: isDarkModeEnabled ? Colors.grey[900] : Colors.white,
       appBar: AppBar(
           title: Text('Check Calculator'),
-          backgroundColor: Colors.black,
+          backgroundColor: isDarkModeEnabled ?Colors.black : Colors.white,
+          centerTitle: true,
+          toolbarTextStyle: TextStyle(
+            color: isDarkModeEnabled ? Colors.white : Colors.black,
+            fontSize: 20.0,
+            fontWeight: FontWeight.bold,
+          ),
+          titleTextStyle: TextStyle(
+            color: isDarkModeEnabled ? Colors.white : Colors.black,
+            fontSize: 20.0,
+            fontWeight: FontWeight.bold,
+          ),
           actions: [
             IconButton(
               icon: Icon(Icons.settings),
+              color: isDarkModeEnabled ? Colors.white : Colors.black,
               onPressed: () {
                 Navigator.push(
                   context,
@@ -158,9 +192,34 @@ class HomeScreenState extends State<HomeScreen> {
             children: [
               Expanded(
                 child: TextFormField(
+                  style: TextStyle(
+                    color: isDarkModeEnabled ? Colors.white : Colors.black,
+                  ),
                   decoration: InputDecoration(
-                    hintText: 'VAT %',
-                    border: OutlineInputBorder(),
+                    hintText: 'VAT Tax',
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: isDarkModeEnabled ? Colors.white : Colors.black,
+                        width: 2.0,
+                      ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: isDarkModeEnabled ? Colors.white : Colors.black,
+                        width: 2.0,
+                      ),
+                    ),
+                    hintStyle: TextStyle(
+                      color: isDarkModeEnabled ? Colors.white : Colors.black,
+                    ),
+                    labelText: 'VAT Tax %',
+                    labelStyle: TextStyle(
+                      color: isDarkModeEnabled ? Colors.white : Colors.black,
+                    ),
+                    suffixText: '%',
+                    suffixStyle: TextStyle(
+                      color: isDarkModeEnabled ? Colors.white : Colors.black,
+                    ),
                   ),
                   keyboardType: TextInputType.number,
                   onChanged: (value) {
@@ -171,10 +230,36 @@ class HomeScreenState extends State<HomeScreen> {
               SizedBox(width: 8.0),
               Expanded(
                 child: TextFormField(
-                  decoration: InputDecoration(
-                    hintText: 'Service Tax %',
-                    border: OutlineInputBorder(),
+                  style: TextStyle(
+                    color: isDarkModeEnabled ? Colors.white : Colors.black,
                   ),
+                  decoration: InputDecoration(
+                    hintText: 'Service Tax',
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: isDarkModeEnabled ? Colors.white : Colors.black,
+                        width: 2.0,
+                      ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: isDarkModeEnabled ? Colors.white : Colors.black,
+                        width: 2.0,
+                      ),
+                    ),
+                    hintStyle: TextStyle(
+                      color: isDarkModeEnabled ? Colors.white : Colors.black,
+                    ),
+                    suffixText: '%',
+                    suffixStyle: TextStyle(
+                      color: isDarkModeEnabled ? Colors.white : Colors.black,
+                    ),
+                    labelText: 'Service Tax %',
+                    labelStyle: TextStyle(
+                      color: isDarkModeEnabled ? Colors.white : Colors.black,
+                    ),
+                  ),
+                  
                   keyboardType: TextInputType.number,
                   onChanged: (value) => updateServiceTax(double.tryParse(value) ?? 0.0),
                 ),
@@ -182,9 +267,31 @@ class HomeScreenState extends State<HomeScreen> {
               SizedBox(width: 8.0),
               Expanded(
                 child: TextFormField(
+                  style: TextStyle(
+                    color: isDarkModeEnabled ? Colors.white : Colors.black,
+                  ),
                   decoration: InputDecoration(
                     hintText: 'Tip',
                     border: OutlineInputBorder(),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: isDarkModeEnabled ? Colors.white : Colors.black,
+                        width: 2.0,
+                      ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: isDarkModeEnabled ? Colors.white : Colors.black,
+                        width: 2.0,
+                      ),
+                    ),
+                    hintStyle: TextStyle(
+                      color: isDarkModeEnabled ? Colors.white : Colors.black,
+                    ),
+                    labelText: 'Tip',
+                    labelStyle: TextStyle(
+                      color: isDarkModeEnabled ? Colors.white : Colors.black,
+                    ),
                   ),
                   keyboardType: TextInputType.number,
                   onChanged: (value) => updateTip(double.tryParse(value) ?? 0.0),
@@ -201,9 +308,21 @@ class HomeScreenState extends State<HomeScreen> {
             children: [
               Expanded(
                 child: TextFormField(
+                  style: TextStyle(
+                    color: isDarkModeEnabled ? Colors.white : Colors.black,
+                  ),
                   decoration: InputDecoration(
                   labelText: 'Total',
                   border: OutlineInputBorder(),
+                  disabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(
+                      color: Colors.grey,
+                      width: 2.0,
+                    ),
+                  ),
+                  labelStyle: TextStyle(
+                    color: isDarkModeEnabled ? Colors.white : Colors.black,
+                  ),
                 ),
                 initialValue: null,
                 controller: total,
@@ -231,11 +350,27 @@ class HomeScreenState extends State<HomeScreen> {
                           child: Container(
                             padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
                             child: TextFormField(
-                              decoration: InputDecoration(
-                                hintText: 'Name',
-                                border: OutlineInputBorder(),
+                              style: TextStyle(
+                                color: isDarkModeEnabled ? Colors.white : Colors.black,
                               ),
-                              initialValue: people[personIndex].name,
+                              decoration: InputDecoration(
+                                hintText: people[personIndex].name,
+                                focusedBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                    color: isDarkModeEnabled ? Colors.white : Colors.black,
+                                    width: 2.0,
+                                  ),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                    color: isDarkModeEnabled ? Colors.white : Colors.black,
+                                    width: 2.0,
+                                  ),
+                                ),
+                                hintStyle: TextStyle(
+                                  color: isDarkModeEnabled ? Colors.white : Colors.black,
+                                ),
+                              ),
                               onChanged: (value) => updateName(personIndex, value),
                             ),
                           ),
@@ -246,9 +381,18 @@ class HomeScreenState extends State<HomeScreen> {
                           child: Container(
                             padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
                             child: TextFormField(
+                              style: TextStyle(
+                                color: isDarkModeEnabled ? Colors.white : Colors.black,
+                              ),
                               decoration: InputDecoration(
                                 hintText: 'Total',
                                 border: OutlineInputBorder(),
+                                disabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color:Colors.grey,
+                                  width: 2.0,
+                                ),
+                              ),
                               ),
                               initialValue: null,
                               controller: allTotals[personIndex],
@@ -259,6 +403,7 @@ class HomeScreenState extends State<HomeScreen> {
                         SizedBox(width: 8.0),
                         IconButton(
                           icon: Icon(Icons.delete),
+                          color: Colors.red,
                           onPressed: () => removePerson(personIndex),
                         ),
                       ],
@@ -274,12 +419,29 @@ class HomeScreenState extends State<HomeScreen> {
                               children: [
                                 Expanded(
                                   child: TextFormField(
+                                    style: TextStyle(
+                                      color: isDarkModeEnabled ? Colors.white : Colors.black,
+                                    ),
                                     decoration: InputDecoration(
                                       hintText: 'Item ${itemIndex + 1}',
-                                      border: OutlineInputBorder(),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                          color: isDarkModeEnabled ? Colors.white : Colors.black,
+                                          width: 2.0,
+                                        ),
+                                      ),
+                                      enabledBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                          color: isDarkModeEnabled ? Colors.white : Colors.black,
+                                          width: 2.0,
+                                        ),
+                                      ),
+                                      hintStyle: TextStyle(
+                                        color: isDarkModeEnabled ? Colors.white : Colors.black,
+                                      ),
                                     ),
                                     keyboardType: TextInputType.number,
-                                    initialValue: people[personIndex].items[itemIndex].toString(),
+                                    initialValue: null,
                                     onChanged: (value) {
                                       updateItem(personIndex, itemIndex, double.tryParse(value) ?? 0.0);
                                     },
@@ -288,6 +450,7 @@ class HomeScreenState extends State<HomeScreen> {
                                 SizedBox(width: 8.0),
                                 IconButton(
                                   icon: Icon(Icons.delete),
+                                  color: Colors.red,
                                   onPressed: () => removeItem(personIndex, itemIndex),
                                 ),
                               ],
