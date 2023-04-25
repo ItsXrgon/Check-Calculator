@@ -1,29 +1,42 @@
 import 'package:flutter/material.dart';
 
 class Person extends ChangeNotifier {
-  List<double> items = [];
-  late String name;
-  double total = 0.0;
+  late String _name;
+  List<double> _items = [];
+  double _total = 0.0;
 
-  Person({required this.name, required this.items});
-
+  Person({required String name}) {
+    _name = name;
+  }
   void setName(String name) {
-    name = name;
+    _name = name;
   }
 
   String getName() {
-    return name;
+    return _name;
+  }
+
+  List<double> getItems() {
+    return _items;
   }
 
   double getTotal() {
-    return total;
+    return _total;
   }
   
+  void addItem() {
+    _items.add(0);
+  }
+
+  void removeItem(int itemIndex) {
+    _items.removeAt(itemIndex);
+  }
+
   void calculateTotal(double vat, double serviceTax, double tip) {
     double personTotal = 0.0;
-    if(items.isNotEmpty) {
-      personTotal += items.reduce((sum, item) => sum + item);
+    if(_items.isNotEmpty) {
+      personTotal += _items.reduce((sum, item) => sum + item);
     }
-    total = personTotal + (personTotal * vat/100) + (personTotal * serviceTax/100) + tip;
+    _total = personTotal + (personTotal * vat/100) + (personTotal * serviceTax/100) + tip;
   }
 }

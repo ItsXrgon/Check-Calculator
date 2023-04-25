@@ -1,9 +1,15 @@
 import 'package:check_calculator/Pages/homescreen.dart';
 import 'package:flutter/material.dart';
-
+import 'package:provider/provider.dart';
+import 'package:check_calculator/services/settingsdata.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => SettingsData(),
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -14,9 +20,6 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Check Calculator',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
       home: HomeScreen(),
     );
   }

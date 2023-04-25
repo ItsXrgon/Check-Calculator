@@ -1,5 +1,6 @@
+import 'package:check_calculator/services/settingsdata.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -10,55 +11,44 @@ class SettingsPage extends StatefulWidget {
 
 class SettingsPageState extends State<SettingsPage> {
 
-  // Current theme selection
-  bool isDarkModeEnabled = false;
-
-  // Default values for VAT, service, and tip
-  double defaultVat = 0.0;
-  double defaultService = 0.0;
-  double defaultTip = 0.0;
-
   void updateTheme(bool value) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('isDarkModeEnabled', value);
-    setState(() {
-      isDarkModeEnabled = value;
-    });
+    Provider.of<SettingsData>(context, listen: false).updateValue(value, 'isDarkModeEnabled');
   }
 
 
-  void updateVat(double vatTax) {
-    setState(() {
-      if(vatTax >= 0) {
-        defaultVat = vatTax;
-      }
-    });
+  void updateVat(double value) {
+    if(value >= 0) {
+      Provider.of<SettingsData>(context, listen: false).updateValue(value, 'defaultVat');
+    }
   }
 
-  void updateServiceTax(double serviceTax) {
-    setState(() {
-      if(serviceTax >= 0) {
-        defaultService = serviceTax;
-      }
-    });
+  void updateServiceTax(double value) {
+    if(value >= 0) {
+      Provider.of<SettingsData>(context, listen: false).updateValue(value, 'defaultService');
+    }
   }
 
-  void updateTip(double tip) {
-    setState(() {
-      if(tip >= 0) {
-        defaultTip = tip;
-      }
-    });
+  void updateTip(double value) {
+    if(value >= 0) {
+      Provider.of<SettingsData>(context, listen: false).updateValue(value, 'defaultTip');
+    }
   }
 
 
   @override
   Widget build(BuildContext context) {
+
+    bool isDarkModeEnabled = Provider.of<SettingsData>(context).isDarkModeEnabled;
+    double defaultVat = Provider.of<SettingsData>(context).defaultVat;
+    double defaultService = Provider.of<SettingsData>(context).defaultService;
+    double defaultTip = Provider.of<SettingsData>(context).defaultTip;
+
+
     return Scaffold(
       backgroundColor: isDarkModeEnabled ? Colors.grey[900] : Colors.white,
       appBar: AppBar(
         title: Text('Settings'),
-        backgroundColor: isDarkModeEnabled ?Colors.black : Colors.white,
+        backgroundColor: isDarkModeEnabled ?Colors.black : Colors.grey[200],
         iconTheme: IconThemeData(
           color: isDarkModeEnabled ? Colors.white : Colors.black,
         ),
@@ -113,7 +103,7 @@ class SettingsPageState extends State<SettingsPage> {
               ),
             ),
           SizedBox(height: 16.0),
-          TextField(
+          TextFormField(
             style: TextStyle(
               color: isDarkModeEnabled ? Colors.white : Colors.black,
             ),
@@ -142,17 +132,16 @@ class SettingsPageState extends State<SettingsPage> {
                 ),
               ),
             ),
+            initialValue: defaultVat > 0.0 ? defaultVat.toString() : null,
             keyboardType: TextInputType.number,
-            onChanged: (value) async {
+            onChanged: (value) {
               setState(() {
                 updateVat(double.tryParse(value) ?? 0.0);
               });
-              final prefs = await SharedPreferences.getInstance();
-              prefs.setDouble('defaultVat', defaultVat);
             },
           ),
           SizedBox(height: 16.0),
-          TextField(
+          TextFormField(
             style: TextStyle(
               color: isDarkModeEnabled ? Colors.white : Colors.black,
             ),
@@ -182,22 +171,21 @@ class SettingsPageState extends State<SettingsPage> {
                 ),
               ),
             ),
+            initialValue: defaultService > 0.0 ? defaultService.toString() : null,
             keyboardType: TextInputType.number,
-            onChanged: (value) async {
+            onChanged: (value) {
               setState(() {
                 updateServiceTax(double.tryParse(value) ?? 0.0);
               });
-              final prefs = await SharedPreferences.getInstance();
-              prefs.setDouble('defaultService', defaultService);
             },
           ),
           SizedBox(height: 16.0),
-          TextField(
+          TextFormField(
             style: TextStyle(
               color: isDarkModeEnabled ? Colors.white : Colors.black,
             ),
             decoration: InputDecoration(
-              labelText: 'Tip (%)',
+              labelText: 'Tip',
               focusedBorder: OutlineInputBorder(
                 borderSide: BorderSide(
                   color: isDarkModeEnabled ? Colors.white : Colors.black,
@@ -210,10 +198,6 @@ class SettingsPageState extends State<SettingsPage> {
               labelStyle: TextStyle(
                 color: isDarkModeEnabled ? Colors.white : Colors.black,
               ),
-              suffixText: '%',
-              suffixStyle: TextStyle(
-                color: isDarkModeEnabled ? Colors.white : Colors.black,
-              ),
               enabledBorder: OutlineInputBorder(
                 borderSide: BorderSide(
                   color: isDarkModeEnabled ? Colors.white : Colors.black,
@@ -221,13 +205,12 @@ class SettingsPageState extends State<SettingsPage> {
                 ),
               ),
             ),
+            initialValue: defaultTip > 0.0 ? defaultTip.toString() : null,
             keyboardType: TextInputType.number,
-            onChanged: (value) async {
+            onChanged: (value) {
               setState(() {
                 updateTip(double.tryParse(value) ?? 0.0);
               });
-              final prefs = await SharedPreferences.getInstance();
-              prefs.setDouble('defaultTip', defaultTip);
             },
           ),
         ],
