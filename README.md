@@ -1,16 +1,5 @@
-# check_calculator
+# Check Calculator
 
-A new Flutter project.
+Flutter application to calculate the amount each person has to pay from the cheque total by inputting VAT tax, service tax,t tip and the people who ordered and what they ordered
 
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+each person's total is calculated individually taking into account what they ordered and the taxes they have to pay + the tip value divided by the number of people there.
