@@ -1,0 +1,27 @@
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Flutter App</title>
+  
+  <!-- Firebase code snippet -->
+  <script src="https://www.gstatic.com/firebasejs/8.6.5/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.6.5/firebase-analytics.js"></script>
+  <script>
+    initializeApp = require("firebase/app");
+    getAnalytics = require("firebase/analytics");
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyBc-clyfvR9qP-OGG7wHXJCo1migm4Rrcs",
+        authDomain: "check-calculator-da021.firebaseapp.com",
+        projectId: "check-calculator-da021",
+        storageBucket: "check-calculator-da021.appspot.com",
+        messagingSenderId: "562783830690",
+        appId: "1:562783830690:web:d83fbbfd85410876a48dfb",
+        measurementId: "G-M3TV32JF29"
+      };
+
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      const analytics = getAnalytics(app);
+  </script>
+</head>
