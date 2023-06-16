@@ -15,6 +15,9 @@ class SettingsPageState extends State<SettingsPage> {
     Provider.of<SettingsData>(context, listen: false).updateValue(value, 'isDarkModeEnabled');
   }
 
+  void updateTipAsPercentage(bool value) async {
+    Provider.of<SettingsData>(context, listen: false).updateValue(value, 'tipAsPercentage');
+  }
 
   void updateVat(double value) {
     if(value >= 0) {
@@ -39,6 +42,7 @@ class SettingsPageState extends State<SettingsPage> {
   Widget build(BuildContext context) {
 
     bool isDarkModeEnabled = Provider.of<SettingsData>(context).isDarkModeEnabled;
+    bool tipAsPercentage = Provider.of<SettingsData>(context).tipAsPercentage;
     double defaultVat = Provider.of<SettingsData>(context).defaultVat;
     double defaultService = Provider.of<SettingsData>(context).defaultService;
     double defaultTip = Provider.of<SettingsData>(context).defaultTip;
@@ -91,6 +95,35 @@ class SettingsPageState extends State<SettingsPage> {
                 SizedBox(width: 16),
                 Icon(
                   Icons.nightlight_round,
+                  color: isDarkModeEnabled ? Colors.white : Colors.black,
+                ),
+              ],
+          ),
+          SizedBox(height: 16.0),
+          Text(
+              'Tip as percentage',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  color: isDarkModeEnabled ? Colors.white : Colors.black,
+                ),
+          ),
+          Row(
+              children: [
+                Icon(
+                  Icons.euro_symbol, 
+                  color: isDarkModeEnabled ? Colors.white : Colors.black,
+                ),
+                SizedBox(width: 16),
+                Switch(
+                  value: tipAsPercentage,
+                  onChanged: (value) async {
+                    updateTipAsPercentage(value);
+                  },
+                  activeColor: isDarkModeEnabled ? Colors.white : Colors.black,
+                  inactiveTrackColor: Colors.grey[300],
+                ),
+                SizedBox(width: 16),
+                Icon(
+                  Icons.percent,
                   color: isDarkModeEnabled ? Colors.white : Colors.black,
                 ),
               ],

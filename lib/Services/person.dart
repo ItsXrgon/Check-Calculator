@@ -8,6 +8,12 @@ class Person extends ChangeNotifier {
   Person({required String name}) {
     _name = name;
   }
+
+  personItems({required String name, List<double>? items}) {
+    _name = name;
+    _items = items!;
+  }
+
   void setName(String name) {
     _name = name;
   }
