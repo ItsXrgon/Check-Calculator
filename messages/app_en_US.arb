@@ -1,0 +1,6 @@
+{
+  "@@locale": "en_US",
+  "hello": "Hello",
+  "welcome": "Welcome",
+  // Add more translations here...
+}

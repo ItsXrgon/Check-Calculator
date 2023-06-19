@@ -47,7 +47,6 @@ class SettingsPageState extends State<SettingsPage> {
     double defaultService = Provider.of<SettingsData>(context).defaultService;
     double defaultTip = Provider.of<SettingsData>(context).defaultTip;
 
-
     return Scaffold(
       backgroundColor: isDarkModeEnabled ? Colors.grey[900] : Colors.white,
       appBar: AppBar(

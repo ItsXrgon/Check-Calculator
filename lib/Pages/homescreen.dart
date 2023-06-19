@@ -1,10 +1,9 @@
 import 'package:check_calculator/Pages/settingspage.dart';
 import 'package:check_calculator/services/preset.dart';
 import 'package:check_calculator/services/settingsdata.dart';
+import 'package:check_calculator/services/person.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
-import '/services/person.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -18,16 +17,7 @@ class HomeScreenState extends State<HomeScreen> {
   List<TextEditingController> allTotals = [];
   TextEditingController total = TextEditingController();
   bool isTipAsPercentage = false;
-
-  List<Preset> savedPresets = [
-    Preset(
-        name: 'Preset 1',
-        people: [Person(name: 'John'), Person(name: 'Alice')]),
-    Preset(
-        name: 'Preset 2', people: [Person(name: 'Bob'), Person(name: 'Carol')]),
-    Preset(
-        name: 'Preset 3', people: [Person(name: 'David'), Person(name: 'Eve')]),
-  ];
+  List<Preset> savedPresets = [];
 
   int numberOfPeople = 0;
   double vatTax = 0.0;
@@ -37,6 +27,7 @@ class HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    savedPresets = [];
     Provider.of<SettingsData>(context, listen: false).loadSettings();
     allTotals = [];
     total.text = "0";
@@ -51,6 +42,13 @@ class HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
+  void savePreset(String name) {
+    setState(() {
+      savedPresets.add(Preset(name: name, people: List.from(people)));
+      Provider.of<SettingsData>(context, listen: false).updateValue(savedPresets, 'savedPresets');
+    });
+  }
+
   void loadPreset(Preset preset) {
     setState(() {
       people = List.from(preset.getPeople());
@@ -60,6 +58,16 @@ class HomeScreenState extends State<HomeScreen> {
         allTotals.add(TextEditingController());
         allTotals[i].text = people[i].getTotal().toStringAsFixed(2);
       }
+      updateTotals();
+    });
+  }
+
+  void clear() {
+    setState(() {
+      people = [];
+      numberOfPeople = 0;
+      allTotals = [];
+      total.text = "0";
       updateTotals();
     });
   }
@@ -139,11 +147,7 @@ class HomeScreenState extends State<HomeScreen> {
   void updateTip(double tip) {
     setState(() {
       if (tip >= 0) {
-        if (isTipAsPercentage) {
-          this.tip = (tip / 100) * double.parse(total.text);
-        } else {
-          this.tip = tip;
-        }
+        this.tip = tip;
         updateTotals();
       }
     });
@@ -152,7 +156,7 @@ class HomeScreenState extends State<HomeScreen> {
   void updateTotals() {
     setState(() {
       for (int i = 0; i < people.length; i++) {
-        people[i].calculateTotal(vatTax, serviceTax, tip / numberOfPeople);
+        people[i].calculateTotal(vatTax, serviceTax, tip, isTipAsPercentage, numberOfPeople);
         allTotals[i].text = people[i].getTotal().toStringAsFixed(2);
       }
       getTotal();
@@ -164,10 +168,7 @@ class HomeScreenState extends State<HomeScreen> {
     for (Person person in people) {
       totalAll += person.getTotal();
     }
-    totalAll = totalAll +
-        (totalAll * vatTax / 100) +
-        (totalAll * serviceTax / 100) +
-        tip;
+    
     total.text = totalAll.toStringAsFixed(2);
   }
 
@@ -175,11 +176,11 @@ class HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     bool isDarkModeEnabled =
         Provider.of<SettingsData>(context).isDarkModeEnabled;
-    bool tipAsPercentage = Provider.of<SettingsData>(context).tipAsPercentage;
-    isTipAsPercentage = tipAsPercentage;
+    isTipAsPercentage = Provider.of<SettingsData>(context).tipAsPercentage;
     double vatTax = Provider.of<SettingsData>(context).defaultVat;
     double serviceTax = Provider.of<SettingsData>(context).defaultService;
     double tip = Provider.of<SettingsData>(context).defaultTip;
+    savedPresets = Provider.of<SettingsData>(context).savedPresets;
 
     return Scaffold(
       backgroundColor: isDarkModeEnabled ? Colors.grey[900] : Colors.white,
@@ -307,7 +308,7 @@ class HomeScreenState extends State<HomeScreen> {
                         width: 2.0,
                       ),
                     ),
-                    suffixText: tipAsPercentage ? '%' : '\$',
+                    suffixText: isTipAsPercentage ? '%' : '\$',
                     suffixStyle: TextStyle(
                       color: isDarkModeEnabled ? Colors.white : Colors.black,
                     ),
@@ -417,10 +418,71 @@ class HomeScreenState extends State<HomeScreen> {
                                   child: Text('Clear'),
                                   onPressed: () {
                                     setState(() {
-                                      people.clear();
-                                      total.text = '';
+                                      clear();
                                     });
                                     Navigator.of(context).pop();
+                                  },
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      },
+                    ),
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.symmetric(
+                            vertical: 16.0, horizontal: 32.0),
+                        shape: RoundedRectangleBorder(
+                          side: BorderSide(
+                            color:
+                                isDarkModeEnabled ? Colors.white : Colors.black,
+                            width: 2.0,
+                          ),
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                      ),
+                      child: Text(
+                        'Save current as preset',
+                        style: TextStyle(
+                          color:
+                              isDarkModeEnabled ? Colors.white : Colors.black,
+                        ),
+                      ),
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            String presetName =
+                                ''; // Variable to store the preset name
+
+                            return AlertDialog(
+                              title: Text('Preset name'),
+                              content: TextField(
+                                onChanged: (value) {
+                                  presetName =
+                                      value; // Update the preset name as the text changes
+                                },
+                                decoration: InputDecoration(
+                                  hintText: 'Enter preset name',
+                                ),
+                              ),
+                              actions: [
+                                TextButton(
+                                  child: Text('Cancel'),
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                ),
+                                TextButton(
+                                  child: Text('Save'),
+                                  onPressed: () {
+                                    if (presetName.isNotEmpty) {
+                                      setState(() {
+                                        savePreset(presetName);
+                                      });
+                                      Navigator.of(context).pop();
+                                    }
                                   },
                                 ),
                               ],
@@ -465,6 +527,41 @@ class HomeScreenState extends State<HomeScreen> {
                                     return ListTile(
                                       title:
                                           Text(savedPresets[index].getName()),
+                                      trailing: IconButton(
+                                        icon: Icon(Icons.delete),
+                                        onPressed: () {
+                                          showDialog(
+                                            context: context,
+                                            builder: (BuildContext context) {
+                                              return AlertDialog(
+                                                title: Text('Confirm Deletion'),
+                                                content: Text(
+                                                    'Are you sure you want to delete this preset?'),
+                                                actions: [
+                                                  TextButton(
+                                                    child: Text('Cancel'),
+                                                    onPressed: () {
+                                                      Navigator.of(context)
+                                                          .pop();
+                                                    },
+                                                  ),
+                                                  TextButton(
+                                                    child: Text('Delete'),
+                                                    onPressed: () {
+                                                      setState(() {
+                                                        savedPresets
+                                                            .removeAt(index);
+                                                      });
+                                                      Navigator.of(context)
+                                                          .pop();
+                                                    },
+                                                  ),
+                                                ],
+                                              );
+                                            },
+                                          );
+                                        },
+                                      ),
                                       onTap: () {
                                         setState(() {
                                           loadPreset(savedPresets[index]);
@@ -510,10 +607,7 @@ class HomeScreenState extends State<HomeScreen> {
                                     : Colors.black,
                               ),
                               decoration: InputDecoration(
-                                hintText: people[personIndex].getName() !=
-                                        'Person ${personIndex + 1}'
-                                    ? 'Person ${personIndex + 1} name'
-                                    : null,
+                                hintText: people[personIndex].getName(),
                                 focusedBorder: OutlineInputBorder(
                                   borderSide: BorderSide(
                                     color: isDarkModeEnabled
